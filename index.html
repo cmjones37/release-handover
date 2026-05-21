@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Release Handover — generate tailored stakeholder communications from a PRD.">
+  <title>Release Handover</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="brand-label">Christine Jones</span>
+      <h1 class="brand-title">Release Handover</h1>
+      <p class="brand-description">Paste a PRD. Generate tailored release communications for every stakeholder.</p>
+    </div>
+  </header>
+
+  <main class="main-layout">
+
+    <aside class="input-panel" aria-label="Input">
+
+      <section>
+        <label class="field-label" for="prd-input">PRD</label>
+        <p class="field-hint">Paste your complete PRD. The quality of each output depends on which sections are present.</p>
+        <textarea
+          id="prd-input"
+          class="prd-textarea"
+          placeholder="Paste your PRD here…"
+          spellcheck="false"
+          aria-label="PRD text input"
+        ></textarea>
+        <p class="word-count" id="word-count" aria-live="polite"></p>
+      </section>
+
+      <section class="stakeholder-section">
+        <fieldset>
+          <legend class="field-label">Stakeholders</legend>
+          <div class="stakeholder-grid">
+
+            <label class="stakeholder-option">
+              <input type="checkbox" name="stakeholder" value="customer" checked>
+              <span class="option-name">Customer</span>
+            </label>
+
+            <label class="stakeholder-option">
+              <input type="checkbox" name="stakeholder" value="gtm" checked>
+              <span class="option-name">GTM</span>
+            </label>
+
+            <label class="stakeholder-option">
+              <input type="checkbox" name="stakeholder" value="services" checked>
+              <span class="option-name">Services</span>
+            </label>
+
+            <label class="stakeholder-option">
+              <input type="checkbox" name="stakeholder" value="leadership" checked>
+              <span class="option-name">Leadership</span>
+            </label>
+
+          </div>
+        </fieldset>
+      </section>
+
+      <button class="generate-btn" id="generate-btn" disabled>
+        <span class="btn-text">Generate outputs</span>
+        <span class="btn-hint" id="btn-hint">Paste a PRD to continue</span>
+      </button>
+
+    </aside>
+
+    <section class="output-panel" aria-label="Generated outputs" aria-live="polite">
+      <div class="output-empty" id="output-empty">
+        <p class="empty-heading">Outputs will appear here</p>
+        <p class="empty-body">Paste a PRD, select stakeholders, and click Generate to produce your release communications.</p>
+      </div>
+      <div class="output-grid" id="output-grid" hidden></div>
+    </section>
+
+  </main>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
