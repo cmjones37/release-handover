@@ -1,6 +1,6 @@
 # Release Handover: Turning PRDs into stakeholder-ready communications
 
-[<img src="docs/prd-icon.png" width="52" alt="PRD icon" />](./docs/PRD.md) The thinking behind this project is documented in the [PRD](./docs/PRD.md).
+[<img src="docs/prd-icon.PNG" width="60" alt="PRD icon" />](./docs/PRD.md) The thinking behind this project is documented in the [PRD](./docs/PRD.md).
 
 ---
 
