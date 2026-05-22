@@ -56,8 +56,7 @@ body::after {
 }
 
 .header-inner {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .brand-label {
@@ -90,9 +89,7 @@ body::after {
 .main-layout {
   display: grid;
   grid-template-columns: 360px 1fr;
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: calc(100vh - 151px);
+  height: calc(100vh - 151px);
 }
 
 /* ── INPUT PANEL ─────────────────────────────────────────── */
@@ -131,42 +128,85 @@ body::after {
   margin-bottom: 0.65rem;
 }
 
-/* PRD textarea */
-.prd-textarea {
+/* File drop zone */
+.file-drop-zone {
   width: 100%;
-  height: calc((100vh - 151px) / 3);
-  min-height: 80px;
-  padding: 0.9rem 1rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 300;
-  line-height: 1.65;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border-mid);
+  padding: 1.6rem 1rem;
+  border: 1.5px dashed var(--border-mid);
   border-radius: var(--r-md);
-  resize: vertical;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background: var(--bg);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
 }
 
-.prd-textarea:focus {
-  outline: none;
+.file-drop-zone:hover,
+.file-drop-zone.is-dragging {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px var(--teal-pale);
+  background: var(--teal-faint);
 }
 
-.prd-textarea::placeholder { color: var(--text3); }
+.file-drop-zone:focus-visible {
+  outline: 3px solid var(--teal-pale);
+  outline-offset: 2px;
+}
 
-.word-count {
+.drop-primary {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 0.2rem;
+}
+
+.drop-secondary {
   font-family: 'DM Mono', monospace;
   font-size: 0.68rem;
   color: var(--text3);
-  margin-top: 0.4rem;
-  min-height: 1.1em;
-  transition: color 0.2s;
 }
 
-.word-count--warn { color: #9a6020; }
+/* Uploaded file list */
+.file-list {
+  list-style: none;
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.65rem;
+  background: var(--teal-faint);
+  border: 1px solid var(--teal-pale);
+  border-radius: var(--r-sm);
+  gap: 0.5rem;
+}
+
+.file-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--teal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.file-remove {
+  font-size: 0.65rem;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.file-remove:hover { color: var(--text); }
 
 /* Stakeholder checkboxes */
 .stakeholder-section fieldset { border: none; }
@@ -270,6 +310,7 @@ body::after {
 /* ── OUTPUT PANEL ────────────────────────────────────────── */
 .output-panel {
   padding: 1.75rem;
+  overflow-y: auto;
 }
 
 .output-empty {
@@ -295,6 +336,51 @@ body::after {
   color: var(--text3);
   max-width: 320px;
   line-height: 1.6;
+}
+
+/* Download all toolbar */
+.output-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.download-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+  background: transparent;
+  border: 1px solid var(--teal-pale);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.download-all-btn:hover:not(:disabled) {
+  background: var(--teal-faint);
+  border-color: var(--teal);
+}
+
+.download-all-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.download-all-btn:focus-visible {
+  outline: 3px solid var(--teal-glow);
+  outline-offset: 2px;
+}
+
+.download-all-label { font-weight: 400; }
+
+.download-all-hint {
+  color: var(--text3);
+  font-size: 0.66rem;
 }
 
 .output-grid {
@@ -444,3 +530,33 @@ body::after {
 }
 
 .retry-btn:hover { background: rgba(140, 50, 30, 0.07); }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .site-header { padding: 1.25rem; }
+
+  .main-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .input-panel {
+    position: static;
+    height: auto;
+    overflow-y: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .output-panel {
+    overflow-y: visible;
+  }
+
+  .output-empty {
+    min-height: 40vh;
+  }
+
+  .output-grid {
+    grid-template-columns: 1fr;
+  }
+}

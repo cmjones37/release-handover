@@ -10,52 +10,97 @@ const STAKEHOLDERS = {
 // Tracks cards currently in the DOM: { stakeholder: { status, content, element } }
 const outputs = {};
 
-function init() {
-  const prdInput   = document.getElementById('prd-input');
-  const generateBtn = document.getElementById('generate-btn');
+// Uploaded PRD files: [{ name, content }]
+let uploadedFiles = [];
 
-  prdInput.addEventListener('input', () => {
-    updateWordCount(prdInput.value);
-    updateGenerateButton();
+function init() {
+  const dropZone  = document.getElementById('file-drop-zone');
+  const fileInput = document.getElementById('prd-files');
+
+  dropZone.addEventListener('click',   () => fileInput.click());
+  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('is-dragging');
+  });
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('is-dragging');
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('is-dragging');
+    loadFiles([...e.dataTransfer.files]);
+  });
+
+  fileInput.addEventListener('change', () => {
+    loadFiles([...fileInput.files]);
+    fileInput.value = ''; // reset so same file can be re-added after removal
   });
 
   document.querySelectorAll('input[name="stakeholder"]').forEach(cb => {
     cb.addEventListener('change', updateGenerateButton);
   });
 
-  generateBtn.addEventListener('click', generate);
+  document.getElementById('generate-btn').addEventListener('click', generate);
+  document.getElementById('download-all-btn').addEventListener('click', downloadAll);
 }
 
-function updateWordCount(text) {
-  const el    = document.getElementById('word-count');
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+function loadFiles(files) {
+  const mdFiles = files.filter(f => f.name.toLowerCase().endsWith('.md'));
+  if (mdFiles.length === 0) return;
 
-  if (words === 0) { el.textContent = ''; el.className = 'word-count'; return; }
+  Promise.all(mdFiles.map(readFile)).then(results => {
+    const existing = new Set(uploadedFiles.map(f => f.name));
+    results.forEach(r => { if (!existing.has(r.name)) uploadedFiles.push(r); });
+    renderFileList();
+    updateGenerateButton();
+  });
+}
 
-  el.textContent = `${words.toLocaleString()} words`;
-  if (words > 4000) {
-    el.className  = 'word-count word-count--warn';
-    el.textContent += ' — long PRDs may affect output quality';
-  } else {
-    el.className = 'word-count';
-  }
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = e => resolve({ name: file.name, content: e.target.result });
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  list.hidden = uploadedFiles.length === 0;
+  list.innerHTML = uploadedFiles.map((f, i) => `
+    <li class="file-item">
+      <span class="file-name">${f.name}</span>
+      <button class="file-remove" data-index="${i}" aria-label="Remove ${f.name}">✕</button>
+    </li>
+  `).join('');
+
+  list.querySelectorAll('.file-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      uploadedFiles.splice(+btn.dataset.index, 1);
+      renderFileList();
+      updateGenerateButton();
+    });
+  });
 }
 
 function updateGenerateButton() {
-  const prd      = document.getElementById('prd-input').value.trim();
   const selected = getSelected();
-  const btn      = document.getElementById('generate-btn');
-  const hint     = document.getElementById('btn-hint');
+  const btn  = document.getElementById('generate-btn');
+  const hint = document.getElementById('btn-hint');
 
-  if (!prd) {
-    btn.disabled   = true;
-    hint.textContent = 'Paste a PRD to continue';
+  if (uploadedFiles.length === 0) {
+    btn.disabled     = true;
+    hint.textContent = 'Upload a PRD to continue';
   } else if (selected.length === 0) {
-    btn.disabled   = true;
+    btn.disabled     = true;
     hint.textContent = 'Select at least one stakeholder';
   } else {
-    btn.disabled   = false;
-    hint.textContent = `Generate ${selected.length} output${selected.length > 1 ? 's' : ''}`;
+    btn.disabled     = false;
+    const fileLabel  = uploadedFiles.length === 1 ? '1 file' : `${uploadedFiles.length} files`;
+    hint.textContent = `Generate ${selected.length} output${selected.length > 1 ? 's' : ''} from ${fileLabel}`;
   }
 }
 
@@ -64,17 +109,16 @@ function getSelected() {
 }
 
 async function generate() {
-  const prd      = document.getElementById('prd-input').value.trim();
   const selected = getSelected();
   const btn      = document.getElementById('generate-btn');
 
   btn.disabled = true;
   btn.classList.add('is-generating');
-  document.getElementById('btn-hint').textContent = `Generating ${selected.length} output${selected.length > 1 ? 's' : ''}`;
+  document.getElementById('btn-hint').textContent = `Generating ${selected.length} output${selected.length > 1 ? 's' : ''}…`;
 
   showOutputGrid(selected);
 
-  await Promise.all(selected.map(s => generateFor(s, prd)));
+  await Promise.all(selected.map(s => generateFor(s, uploadedFiles)));
 
   btn.classList.remove('is-generating');
   updateGenerateButton();
@@ -83,8 +127,17 @@ async function generate() {
 function showOutputGrid(stakeholders) {
   document.getElementById('output-empty').hidden = true;
   document.querySelector('.output-panel').scrollTop = 0;
+  document.getElementById('output-toolbar').hidden = false;
   const grid = document.getElementById('output-grid');
   grid.hidden = false;
+
+  // Remove cards for stakeholders no longer in the current selection
+  Object.keys(outputs).forEach(s => {
+    if (!stakeholders.includes(s)) {
+      outputs[s].element?.remove();
+      delete outputs[s];
+    }
+  });
 
   stakeholders.forEach(s => {
     if (outputs[s] && outputs[s].element) {
@@ -97,12 +150,14 @@ function showOutputGrid(stakeholders) {
       outputs[s] = { status: 'loading', content: '', element: card };
     }
   });
+
+  updateDownloadAllBtn();
 }
 
 function createCard(stakeholder) {
   const { label, hint } = STAKEHOLDERS[stakeholder];
   const card = document.createElement('div');
-  card.className          = 'output-card';
+  card.className           = 'output-card';
   card.dataset.stakeholder = stakeholder;
 
   card.innerHTML = `
@@ -137,26 +192,26 @@ function createCard(stakeholder) {
 }
 
 function resetCard(card) {
-  card.querySelector('.card-loading').hidden  = false;
+  card.querySelector('.card-loading').hidden    = false;
   card.querySelector('.output-textarea').hidden = true;
-  card.querySelector('.card-error').hidden    = true;
-  card.querySelector('.download-btn').disabled = true;
+  card.querySelector('.card-error').hidden      = true;
+  card.querySelector('.download-btn').disabled  = true;
 }
 
-async function generateFor(stakeholder, prd) {
+async function generateFor(stakeholder, files) {
   try {
     const res = await fetch('/api/generate', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ prdText: prd, stakeholder })
+      body:    JSON.stringify({ prdTexts: files, stakeholder })
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
-    setDone(outputs[stakeholder].element, stakeholder, data.content);
     outputs[stakeholder].status  = 'done';
     outputs[stakeholder].content = data.content;
+    setDone(outputs[stakeholder].element, stakeholder, data.content);
   } catch (err) {
     setError(outputs[stakeholder].element, err.message);
     outputs[stakeholder].status = 'error';
@@ -177,10 +232,11 @@ function setDone(card, stakeholder, content) {
 
   const btn = card.querySelector('.download-btn');
   btn.disabled = false;
+  updateDownloadAllBtn();
 }
 
 function setError(card, message) {
-  card.querySelector('.card-loading').hidden   = true;
+  card.querySelector('.card-loading').hidden    = true;
   card.querySelector('.output-textarea').hidden = true;
 
   const errEl = card.querySelector('.card-error');
@@ -189,13 +245,12 @@ function setError(card, message) {
 }
 
 function retry(stakeholder) {
-  const prd = document.getElementById('prd-input').value.trim();
-  if (!prd) return;
+  if (uploadedFiles.length === 0) return;
 
   resetCard(outputs[stakeholder].element);
   outputs[stakeholder].status  = 'loading';
   outputs[stakeholder].content = '';
-  generateFor(stakeholder, prd);
+  generateFor(stakeholder, uploadedFiles);
 }
 
 function download(stakeholder) {
@@ -207,6 +262,49 @@ function download(stakeholder) {
   const a    = document.createElement('a');
   a.href     = url;
   a.download = `release-handover-${stakeholder}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function updateDownloadAllBtn() {
+  const all     = Object.values(outputs);
+  const done    = all.filter(o => o.status === 'done');
+  const loading = all.filter(o => o.status === 'loading');
+  const btn     = document.getElementById('download-all-btn');
+  const hint    = document.getElementById('download-all-hint');
+  const enabled = loading.length === 0 && done.length > 0;
+  btn.disabled     = !enabled;
+  hint.textContent = enabled ? `${done.length} .md ${done.length === 1 ? 'file' : 'files'}` : '';
+}
+
+function getExportFolderName() {
+  const prdCount  = uploadedFiles.length;
+  const doneCount = Object.values(outputs).filter(o => o.status === 'done').length;
+  const prdLabel  = prdCount === 1 ? '1 PRD' : `${prdCount} PRDs`;
+  const stLabel   = doneCount === 1 ? '1 stakeholder' : `${doneCount} stakeholders`;
+  const ts        = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z').replace(/:/g, '-');
+  return `${prdLabel} - ${stLabel} - ${ts}`;
+}
+
+async function downloadAll() {
+  const done = Object.entries(outputs).filter(([, o]) => o.status === 'done');
+  if (done.length === 0) return;
+
+  const folderName = getExportFolderName();
+  const zip        = new JSZip();
+  const folder     = zip.folder(folderName);
+
+  done.forEach(([stakeholder, o]) => {
+    folder.file(`release-handover-${stakeholder}.md`, o.content);
+  });
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${folderName}.zip`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

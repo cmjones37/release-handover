@@ -13,7 +13,7 @@
     <div class="header-inner">
       <span class="brand-label">Christine Jones</span>
       <h1 class="brand-title">Release Handover</h1>
-      <p class="brand-description">Paste a PRD. Generate tailored release communications for every stakeholder.</p>
+      <p class="brand-description">Upload PRDs. Generate tailored release communications for every stakeholder.</p>
     </div>
   </header>
 
@@ -22,16 +22,14 @@
     <aside class="input-panel" aria-label="Input">
 
       <section>
-        <label class="field-label" for="prd-input">PRD</label>
-        <p class="field-hint">Paste your complete PRD. The quality of each output depends on which sections are present.</p>
-        <textarea
-          id="prd-input"
-          class="prd-textarea"
-          placeholder="Paste your PRD here…"
-          spellcheck="false"
-          aria-label="PRD text input"
-        ></textarea>
-        <p class="word-count" id="word-count" aria-live="polite"></p>
+        <label class="field-label">PRD Files</label>
+        <p class="field-hint">Upload one or more PRD markdown files. All files are reviewed together and synthesised into each stakeholder output.</p>
+        <div class="file-drop-zone" id="file-drop-zone" tabindex="0" role="button" aria-label="Upload PRD markdown files — click or drop files here">
+          <input type="file" id="prd-files" accept=".md" multiple hidden>
+          <p class="drop-primary">Drop .md files here</p>
+          <p class="drop-secondary">or click to browse</p>
+        </div>
+        <ul class="file-list" id="file-list" hidden></ul>
       </section>
 
       <section class="stakeholder-section">
@@ -65,7 +63,7 @@
 
       <button class="generate-btn" id="generate-btn" disabled>
         <span class="btn-text">Generate outputs</span>
-        <span class="btn-hint" id="btn-hint">Paste a PRD to continue</span>
+        <span class="btn-hint" id="btn-hint">Upload a PRD to continue</span>
       </button>
 
     </aside>
@@ -73,13 +71,20 @@
     <section class="output-panel" aria-label="Generated outputs" aria-live="polite">
       <div class="output-empty" id="output-empty">
         <p class="empty-heading">Outputs will appear here</p>
-        <p class="empty-body">Paste a PRD, select stakeholders, and click Generate to produce your release communications.</p>
+        <p class="empty-body">Upload one or more PRD files, select stakeholders, and click Generate to produce your release communications.</p>
+      </div>
+      <div class="output-toolbar" id="output-toolbar" hidden>
+        <button class="download-all-btn" id="download-all-btn" disabled>
+          <span class="download-all-label">Download all</span>
+          <span class="download-all-hint" id="download-all-hint"></span>
+        </button>
       </div>
       <div class="output-grid" id="output-grid" hidden></div>
     </section>
 
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="scripts.js"></script>
 </body>
 </html>
