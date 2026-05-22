@@ -131,6 +131,14 @@ function showOutputGrid(stakeholders) {
   const grid = document.getElementById('output-grid');
   grid.hidden = false;
 
+  // Remove cards for stakeholders no longer in the current selection
+  Object.keys(outputs).forEach(s => {
+    if (!stakeholders.includes(s)) {
+      outputs[s].element?.remove();
+      delete outputs[s];
+    }
+  });
+
   stakeholders.forEach(s => {
     if (outputs[s] && outputs[s].element) {
       resetCard(outputs[s].element);
@@ -142,6 +150,8 @@ function showOutputGrid(stakeholders) {
       outputs[s] = { status: 'loading', content: '', element: card };
     }
   });
+
+  updateDownloadAllBtn();
 }
 
 function createCard(stakeholder) {
