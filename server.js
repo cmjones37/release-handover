@@ -51,15 +51,15 @@ function handleGenerate(req, res) {
     try { parsed = JSON.parse(raw); }
     catch { return jsonError(res, 400, 'Invalid JSON'); }
 
-    const { prdText, stakeholder } = parsed;
-    if (!prdText || !stakeholder || !PROMPTS[stakeholder]) {
-      return jsonError(res, 400, 'Missing or invalid prdText / stakeholder');
+    const { prdTexts, stakeholder } = parsed;
+    if (!Array.isArray(prdTexts) || prdTexts.length === 0 || !stakeholder || !PROMPTS[stakeholder]) {
+      return jsonError(res, 400, 'Missing or invalid prdTexts / stakeholder');
     }
 
     const payload = JSON.stringify({
       model:      'claude-sonnet-4-6',
       max_tokens: 2048,
-      messages:   [{ role: 'user', content: PROMPTS[stakeholder](prdText) }]
+      messages:   [{ role: 'user', content: PROMPTS[stakeholder](prdTexts) }]
     });
 
     const options = {
@@ -86,17 +86,21 @@ function handleGenerate(req, res) {
         try { body = JSON.parse(data); }
         catch { return jsonError(res, 500, 'Failed to parse API response'); }
 
+        const text = body.content?.[0]?.text;
+        if (!text) return jsonError(res, 500, 'Unexpected API response shape');
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ content: body.content[0].text }));
+        res.end(JSON.stringify({ content: text }));
       });
     });
 
-    apiReq.setTimeout(45000, () => {
+    apiReq.setTimeout(90000, () => {
       apiReq.destroy();
-      jsonError(res, 504, 'Request timed out');
+      if (!res.headersSent) jsonError(res, 504, 'Request timed out');
     });
 
-    apiReq.on('error', (err) => jsonError(res, 500, err.message));
+    apiReq.on('error', (err) => {
+      if (!res.headersSent) jsonError(res, 500, err.message);
+    });
     apiReq.write(payload);
     apiReq.end();
   });
