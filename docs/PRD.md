@@ -4,7 +4,7 @@
 
 ### Purpose
 
-Release Handover is a web-based document generation tool for product managers. It takes a PRD as input and produces tailored release documentation for each relevant stakeholder — customers, services teams, GTM (marketing and sales), and leadership — as separate, downloadable markdown files. Each output is shaped for its audience: language, format, level of detail, and framing are all adjusted per stakeholder rather than produced once and distributed unchanged.
+Release Handover is a web-based document generation tool for product managers. It takes one or more PRDs as input and produces tailored release documentation for each relevant stakeholder — customers, services teams, GTM (marketing and sales), and leadership — as separate, downloadable markdown files. When multiple PRDs are uploaded, outputs are synthesised across all of them into a single communication per stakeholder. Each output is shaped for its audience: language, format, level of detail, and framing are all adjusted per stakeholder rather than produced once and distributed unchanged.
 
 The tool is designed to reduce the manual effort PMs spend translating the same product information into four different communication formats after every release, and to improve the quality and consistency of those communications across the organisation.
 
@@ -30,7 +30,7 @@ Release Handover addresses the extraction problem directly. By analysing a PRD a
 
 | ID | User Story | Acceptance Criteria |
 |---|---|---|
-| US1 | As a product manager, I want to paste a PRD and select which stakeholders to generate outputs for, so I can produce all release communications from a single workflow | All selected stakeholder outputs are generated and available for download as separate markdown files |
+| US1 | As a product manager, I want to upload one or more PRD files and select which stakeholders to generate outputs for, so I can produce all release communications from a single workflow | All selected stakeholder outputs are generated and available for download as separate markdown files or as a single ZIP |
 | US2 | As a product manager, I want each output to be shaped for its audience in language and format, so I can share it directly without significant manual editing | Each output uses the correct tone, structure, and level of detail for its stakeholder without requiring rewriting of the core content |
 | US3 | As a product manager, I want the customer-facing output to describe features in benefit language, so I can publish release notes that are meaningful to end users rather than internal | Customer output uses second-person, benefit-led language and excludes internal terminology and NFRs |
 | US4 | As a product manager, I want the GTM output to identify which personas benefit and recommend honest positioning language, so sales and marketing can communicate the release accurately | GTM output names relevant personas drawn from user stories and goals, and frames benefit language that reflects what was actually built |
@@ -45,7 +45,7 @@ Release Handover addresses the extraction problem directly. By analysing a PRD a
 
 | ID | Requirement |
 |---|---|
-| FR1 | The tool must accept a PRD as pasted text input |
+| FR1 | The tool must accept one or more PRD markdown files via file upload, with drag-and-drop support |
 | FR2 | The tool must allow the PM to select one or more stakeholder output types before generating |
 | FR3 | The tool must generate a separate output file for each selected stakeholder |
 | FR4 | Each output must be generated via a stakeholder-specific Claude API prompt that controls tone, section selection, and format |
@@ -55,6 +55,7 @@ Release Handover addresses the extraction problem directly. By analysing a PRD a
 | FR8 | The services output must include all edge cases, all assumptions, and risks with High or Medium impact reframed as escalation triggers |
 | FR9 | The leadership output must include Goals and Success Metrics and must exclude operational risks and implementation detail |
 | FR10 | All outputs must be downloadable as `.md` files, one per stakeholder |
+| FR12 | The tool must provide a Download All option that packages all completed outputs into a single ZIP file, named with the format `# PRDs - # stakeholders - [UTC timestamp]`, with correct singular/plural handling |
 | FR11 | The tool must display generated outputs in-browser before download so the PM can review them |
 
 ### Non-Functional Requirements
@@ -65,7 +66,7 @@ Release Handover addresses the extraction problem directly. By analysing a PRD a
 | NFR2 | All Claude API calls must be made via a server-side proxy or equivalent secure pattern such that the API key is never exposed in client-side code or browser requests |
 | NFR3 | The tool must handle PRDs up to approximately 4,000 words without truncation or degraded output quality |
 | NFR4 | Generated outputs must be returned within 30 seconds per stakeholder under normal API response conditions |
-| NFR5 | The interface must be usable on desktop without requiring a specific browser; no mobile optimisation is required for v1 |
+| NFR5 | The interface must be usable on desktop without requiring a specific browser; a responsive stacked layout is provided for viewports below 768px |
 | NFR6 | The tool must use the design system tokens and aesthetic established for the Christine Jones portfolio |
 
 ---
@@ -153,6 +154,7 @@ The quality of GTM output is directly dependent on the specificity of user stori
 - **Anthropic API key** — required for API calls; stored server-side and never exposed in client code or browser requests
 - **Server-side proxy** — required to handle API calls securely; must be in place before v1 ships
 - **Portfolio design system** — CSS tokens, typography, and component patterns from the Christine Jones portfolio applied to the tool interface
+- **JSZip (CDN)** — client-side library for packaging bulk exports; loaded from cdnjs, no npm install required
 - No npm dependencies — intentional; vanilla HTML, CSS, and JS stack consistent with portfolio conventions
 
 ---
@@ -175,7 +177,7 @@ The following are known gaps or planned improvements that are out of scope for t
 - **Code diff input** — allow PMs to paste or upload a code diff alongside or instead of a PRD, extending the tool's usefulness beyond PM-led workflows to engineering-led releases
 - **Presentation output for services** — generate a `.pptx` slide deck for the services stakeholder in addition to the markdown support guide, reflecting the reality that services briefings are commonly delivered as presentations
 - **Tech writer output** — a documentation delta output identifying which documented workflows or UI elements have changed, formatted as a checklist for a technical writer to action
-- **Multi-feature bundling** — support for combining multiple PRDs or feature inputs into a single release communication set, for teams that ship in batches
+- ~~**Multi-feature bundling** — support for combining multiple PRDs or feature inputs into a single release communication set, for teams that ship in batches~~ ✓ Shipped in v1.1 (2026-05-22)
 
 ---
 
