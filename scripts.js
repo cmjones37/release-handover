@@ -199,9 +199,9 @@ async function generateFor(stakeholder, files) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
-    setDone(outputs[stakeholder].element, stakeholder, data.content);
     outputs[stakeholder].status  = 'done';
     outputs[stakeholder].content = data.content;
+    setDone(outputs[stakeholder].element, stakeholder, data.content);
   } catch (err) {
     setError(outputs[stakeholder].element, err.message);
     outputs[stakeholder].status = 'error';
