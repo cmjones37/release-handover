@@ -6,7 +6,7 @@
 
 ## Overview
 
-Release Handover is an AI-powered tool that takes a PRD as input and generates tailored first-draft communications for four stakeholder audiences: customers, GTM, services, and leadership. Each output is shaped for its audience in language, format, and level of detail. The PRD stays as the single source of truth; Release Handover makes that truth legible to everyone who needs it.
+Release Handover is an AI-powered tool that takes one or more PRDs as input and generates tailored first-draft communications for four stakeholder audiences: customers, GTM, services, and leadership. Each output is shaped for its audience in language, format, and level of detail. When multiple PRDs are uploaded, outputs are synthesised across all of them into a single communication per stakeholder. The PRD stays as the single source of truth; Release Handover makes that truth legible to everyone who needs it.
 
 ---
 
@@ -22,8 +22,10 @@ The core of this project is prompt architecture — four distinct Claude API pro
 
 ## Features
 
-- Paste any PRD and select one or more stakeholder output types in a single workflow
+- Upload one or more PRD markdown files and select stakeholder output types in a single workflow
+- When multiple PRDs are uploaded, all are synthesised into one output per stakeholder — not separate outputs per file
 - Generates separate downloadable Markdown files per stakeholder — customer release notes, GTM brief, services support guide, leadership summary
+- Download all outputs at once as a labelled ZIP, named with PRD count, stakeholder count, and UTC timestamp
 - Customer output rewrites user story benefit clauses into plain-language, second-person release notes
 - GTM output extracts named personas and frames positioning language grounded in what the PRD actually describes
 - Services output surfaces edge cases, assumptions, and risks reframed as escalation triggers
@@ -40,10 +42,10 @@ The interface meets WCAG 2.1 AA standards throughout. Semantic HTML elements are
 
 ## Performance
 
-Built on a vanilla HTML, CSS, and JavaScript stack with no npm dependencies and no client-side build step. The only external dependency is the Claude API, called via a server-side proxy to keep the API key out of the browser. No frameworks, no bundler, no unnecessary overhead.
+Built on a vanilla HTML, CSS, and JavaScript stack with no npm dependencies and no client-side build step. External dependencies are the Claude API (called via a server-side proxy to keep the API key out of the browser) and JSZip (loaded from CDN, used client-side to package bulk exports). No frameworks, no bundler, no unnecessary overhead.
 
 ---
 
 ## AI Integration
 
-The core of this project is prompt architecture — four distinct Claude API prompts designed to extract and transform a different slice of the same PRD for a different audience. Each prompt explicitly instructs the model to flag gaps rather than infer or embellish, particularly for the GTM output where the temptation to overstate scope is highest. Code diff input is a planned future iteration once the core extraction logic is validated.
+The core of this project is prompt architecture — four distinct Claude API prompts designed to extract and transform a different slice of the PRD content for a different audience. When multiple PRDs are uploaded, each prompt instructs the model to synthesise across all of them into a single coherent output rather than generating separate outputs per file. Each prompt explicitly instructs the model to flag gaps rather than infer or embellish, particularly for the GTM output where the temptation to overstate scope is highest. Code diff input is a planned future iteration once the core extraction logic is validated.
